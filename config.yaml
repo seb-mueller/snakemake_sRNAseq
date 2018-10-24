@@ -1,7 +1,4 @@
-OUTDIR: 
-  fastq_pooled
-NEXTSEQDIR: 
-  mynextseqdir
+THREADS: 32
 FILTER:
   cutadapt:
       adapter: AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC
@@ -10,6 +7,12 @@ FILTER:
       minimum-length: 15
       maximum-length: 40
       extra-params:
+MAPPING:
+      #default
+      # -k 1 (default): Report up to <int> valid alignments per read
+      mode: "unique" # -m 1
+      missmatches: 0 # -v <int>
+      reference: "data/index/genome"
 
 # AGATCGGAAGAGC
 
