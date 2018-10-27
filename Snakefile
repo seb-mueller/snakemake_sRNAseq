@@ -10,7 +10,7 @@ missmatches =  config['MAPPING']['missmatches']
 reference   =  config['MAPPING']['reference']
 refbase     =  os.path.basename(reference)
 mode        =  config['MAPPING']['mode']
-threads     =  config['THREADS']
+# threads     =  config['THREADS']
 
 if mode == "unique":
     bowtie_par = "-m 1"
@@ -26,8 +26,9 @@ samples = pd.read_table("samples.csv", header=0, sep=',', index_col=0)
 rule all:
     input:
         expand('logs/{sample}_R1_fastqc.html', sample=samples.index),
-        expand('trimmed/{sample}.fastq.gz', sample=samples.index),
-        expand('mapped/{sample}_{refbase}.bam', sample=samples.index, refbase=refbase),
+        # expand('trimmed/{sample}.fastq.gz', sample=samples.index),
+        # expand('mapped/{sample}_{refbase}.bam', sample=samples.index, refbase=refbase),
+        expand('mapped/{sample}.bam.bai', sample=samples.index, refbase=refbase),
         'reports/fastqc.html',
 
 rule fastqc:
@@ -75,15 +76,29 @@ rule bowtie:
     input:
         fastq="trimmed/{sample}.fastq.gz",
     output:
-        "mapped/{sample}_{refbase}.bam"
+        "mapped/{sample}.bam"
     log:
-        "logs/bowtie/{sample}_{refbase}.log"
+        "logs/bowtie/{sample}.log"
     params:
         extra=""
+    threads: 32
     shell:
         "bowtie {reference} --threads {threads} -v {missmatches} "
-        "{bowtie_par} -q {input} -S "
-        "| samtools view -Sbh - | samtools sort -o {output} 2> {log}"
+        "{bowtie_par} -q {input} -S 2> {log}"
+
+rule postmapping:
+    """bam.bai samtools flagstat etc"""
+    input:
+        "mapped/{sample}.bam"
+    output:
+        "mapped/{sample}.bam.bai"
+    log:
+        flagstat="logs/bowtie/{sample}_flagstat.log"
+    shell:
+        """
+        samtools index {input}
+        samtools flagstat {input} > {log.flagstat}
+        """
 
  # bowtie [options]* <ebwt> {-1 <m1> -2 <m2> | --12 <r> |
  # --interleaved <i> | <s>} [<h
