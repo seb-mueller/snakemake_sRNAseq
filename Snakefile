@@ -2,6 +2,7 @@ import pandas as pd
 import os
 
 # Usage:
+# source activate srna_mapping
 # snakemake --use-conda --conda-prefix ~/.myconda -n
 
 # to make shell rule to work we need to determine the base path of Snakefile since we expect
@@ -31,9 +32,9 @@ rule all:
         expand('logs/fastqc/raw/{sample}_R1_fastqc.html', sample=samples.index),
         expand('logs/fastqc/trimmed/{sample}_R1_fastqc.html', sample=samples.index),
         # expand('trimmed/{sample}.fastq.gz', sample=samples.index),
-        expand('mapped/{sample}_MappedOn_{refbase}.bam.bai', sample=samples.index, refbase=refbase),
+        expand('mapped/{sample}_MappedOn_{refbase}_{mode}.bam', sample=samples.index, refbase=refbase, mode=mode),
         # expand('mapped/{sample}.bam.bai', sample=samples.index, refbase=refbase),
-        'reports/fastqc.html',
+        # 'reports/fastqc.html',
 
 rule fastqc_raw:
     """Create fastqc report"""
@@ -48,16 +49,16 @@ rule fastqc_raw:
     wrapper:
         '0.27.1/bio/fastqc'
 
-rule multiqc_fastqc_reads:
-    """https://snakemake-wrappers.readthedocs.io/en/stable/wrappers/multiqc.html"""
-    input:
-        expand('logs/{sample}_R1_fastqc.html', sample=samples.index)
-    output:
-        html='reports/fastqc.html',
-        txt='reports/fastqc_data/multiqc_general_stats.txt'
-    params: '-m fastqc'
-    wrapper:
-        '0.27.1/bio/multiqc'
+# rule multiqc_fastqc_reads:
+#     """https://snakemake-wrappers.readthedocs.io/en/stable/wrappers/multiqc.html"""
+#     input:
+#         expand('logs/{sample}_R1_fastqc.html', sample=samples.index)
+#     output:
+#         html='reports/fastqc.html',
+#         txt='reports/fastqc_data/multiqc_general_stats.txt'
+#     params: '-m fastqc'
+#     wrapper:
+#         '0.27.1/bio/multiqc'
 
 rule cutadapt:
     input:
@@ -93,15 +94,16 @@ rule bowtie:
     input:
         fastq="trimmed/{sample}.fastq.gz",
     output:
-        "mapped/{sample}_MappedOn_{refbase}.bam"
+        "mapped/{sample}_MappedOn_{refbase}_{mode}.bam"
     log:
-        "logs/bowtie/{sample}.log"
+        "logs/bowtie/{sample}_MappedOn_{refbase}_{mode}.log"
     params:
         extra=""
     threads: 32
     shell:
         "bowtie {reference} --threads {threads} -v {missmatches} "
         "{bowtie_par} -q {input} -S 2> {log}"
+        "| samtools view -Sbh - | samtools sort -o {output}"
 
 rule postmapping:
     """bam.bai samtools flagstat etc"""
