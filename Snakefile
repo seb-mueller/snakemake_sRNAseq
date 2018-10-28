@@ -1,6 +1,9 @@
 import pandas as pd
 import os
 
+# Usage:
+# snakemake --use-conda --conda-prefix ~/.myconda -n
+
 # to make shell rule to work we need to determine the base path of Snakefile since we expect
 # the scripts directory there as well
 SRCDIR = srcdir("")
@@ -25,22 +28,23 @@ samples = pd.read_table("samples.csv", header=0, sep=',', index_col=0)
 
 rule all:
     input:
-        expand('logs/{sample}_R1_fastqc.html', sample=samples.index),
+        expand('logs/fastqc/raw/{sample}_R1_fastqc.html', sample=samples.index),
+        expand('logs/fastqc/trimmed/{sample}_R1_fastqc.html', sample=samples.index),
         # expand('trimmed/{sample}.fastq.gz', sample=samples.index),
-        # expand('mapped/{sample}_{refbase}.bam', sample=samples.index, refbase=refbase),
-        expand('mapped/{sample}.bam.bai', sample=samples.index, refbase=refbase),
+        expand('mapped/{sample}_MappedOn_{refbase}.bam.bai', sample=samples.index, refbase=refbase),
+        # expand('mapped/{sample}.bam.bai', sample=samples.index, refbase=refbase),
         'reports/fastqc.html',
 
-rule fastqc:
+rule fastqc_raw:
     """Create fastqc report"""
     input:
         'data/{sample}_R1.fastq.gz'
     output:
-        html='logs/{sample}_R1_fastqc.html',
-        zip='logs/{sample}_R1_fastqc.zip'
+        html='logs/fastqc/raw/{sample}_R1_fastqc.html',
+        zip= 'logs/fastqc/raw/{sample}_R1_fastqc.zip'
     params: '--extract'
     log:
-        "logs/fastqc/{sample}.log"
+        "logs/fastqc/raw/{sample}.log"
     wrapper:
         '0.27.1/bio/fastqc'
 
@@ -71,12 +75,25 @@ rule cutadapt:
     wrapper:
         "0.27.1/bio/cutadapt/se"
 
+rule fastqc_trimmed:
+    """Create fastqc report"""
+    input:
+        'trimmed/{sample}.fastq.gz'
+    output:
+        html='logs/fastqc/trimmed/{sample}_R1_fastqc.html',
+        zip= 'logs/fastqc/trimmed/{sample}_R1_fastqc.zip'
+    params: '--extract'
+    log:
+        "logs/fastqc/{sample}.log"
+    wrapper:
+        '0.27.1/bio/fastqc'
+
 rule bowtie:
     """maps small RNAs using bowtie and sorts them using samtools"""
     input:
         fastq="trimmed/{sample}.fastq.gz",
     output:
-        "mapped/{sample}.bam"
+        "mapped/{sample}_MappedOn_{refbase}.bam"
     log:
         "logs/bowtie/{sample}.log"
     params:
@@ -93,11 +110,17 @@ rule postmapping:
     output:
         "mapped/{sample}.bam.bai"
     log:
-        flagstat="logs/bowtie/{sample}_flagstat.log"
+        flagstat     = "logs/bowtie/{sample}_flagstat.log",
+        idxstat      = "logs/bowtie/{sample}_idxstats.log",
+        coveragestat = "logs/bowtie/{sample}_coveragestats.log",
+        depthstat    = "logs/bowtie/{sample}_depthstats.log"
     shell:
         """
-        samtools index {input}
-        samtools flagstat {input} > {log.flagstat}
+        samtools index        {input}
+        samtools flagstat     {input} >    {log.flagstat}
+        samtools indexstats   {input} >    {log.idxstat}
+        samtools coverage -in {input} -out {log.coveragestat}
+        bamtools depth -in    {input} -out {log.depthstat}
         """
 
  # bowtie [options]* <ebwt> {-1 <m1> -2 <m2> | --12 <r> |
