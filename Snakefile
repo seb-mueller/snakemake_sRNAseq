@@ -32,7 +32,7 @@ rule all:
         expand('logs/fastqc/raw/{sample}_R1_fastqc.html', sample=samples.index),
         expand('logs/fastqc/trimmed/{sample}_R1_fastqc.html', sample=samples.index),
         # expand('trimmed/{sample}.fastq.gz', sample=samples.index),
-        expand('mapped/{sample}_MappedOn_{refbase}_{mode}.bam', sample=samples.index, refbase=refbase, mode=mode),
+        expand('mapped/{sample}_MappedOn_{refbase}_{mode}.bam.bai', sample=samples.index, refbase=refbase, mode=mode),
         # expand('mapped/{sample}.bam.bai', sample=samples.index, refbase=refbase),
         # 'reports/fastqc.html',
 
@@ -85,7 +85,7 @@ rule fastqc_trimmed:
         zip= 'logs/fastqc/trimmed/{sample}_R1_fastqc.zip'
     params: '--extract'
     log:
-        "logs/fastqc/{sample}.log"
+        "logs/fastqc/trimmed/{sample}.log"
     wrapper:
         '0.27.1/bio/fastqc'
 
@@ -120,9 +120,10 @@ rule postmapping:
         """
         samtools index        {input}
         samtools flagstat     {input} >    {log.flagstat}
-        samtools indexstats   {input} >    {log.idxstat}
-        samtools coverage -in {input} -out {log.coveragestat}
-        bamtools depth -in    {input} -out {log.depthstat}
+        samtools idxstats     {input} >    {log.idxstat}
+        # bamtools coverage -in {input} -out {log.coveragestat}
+        # above gives:Pileup::Run() : Data not sorted correctly!
+        # bamtools depth -in    {input} -out {log.depthstat}
         """
 
  # bowtie [options]* <ebwt> {-1 <m1> -2 <m2> | --12 <r> |
