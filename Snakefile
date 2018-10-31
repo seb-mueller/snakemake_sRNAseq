@@ -35,6 +35,7 @@ rule all:
         expand('mapped/{sample}_MappedOn_{refbase}_{mode}.bam.bai', sample=samples.index, refbase=refbase, mode=mode),
         # expand('mapped/{sample}.bam.bai', sample=samples.index, refbase=refbase),
         # 'reports/fastqc.html',
+        expand('mapped/bws/{sample}_MappedOn_{refbase}_{mode}.cpm.bw', sample=samples.index, refbase=refbase, mode=mode),
 
 rule fastqc_raw:
     """Create fastqc report"""
@@ -126,6 +127,19 @@ rule postmapping:
         # bamtools depth -in    {input} -out {log.depthstat}
         """
 
+rule calccoverage:
+    """compute coverage using deeptools into bigWig(bw) file"""
+    input:
+        "mapped/{sample}.bam"
+    output:
+        "mapped/bws/{sample}.cpm.bw"
+    params:
+        binsize="10"
+    threads: 8
+    shell:
+        """
+        bamCoverage -b {input} -o {output}  --normalizeUsing CPM --binSize {params.binsize} -p {threads}
+        """
  # bowtie [options]* <ebwt> {-1 <m1> -2 <m2> | --12 <r> |
  # --interleaved <i> | <s>} [<h
  #  -q                 query input files are FASTQ .fq/.fastq (default)

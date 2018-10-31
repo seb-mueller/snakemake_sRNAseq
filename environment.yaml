@@ -6,3 +6,6 @@ dependencies:
   - multiqc
   - samtools
   - bamtools
+  # - ucsc-bedgraphtobigwig
+  # - bedtools
+  - deeptools 
