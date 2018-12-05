@@ -100,7 +100,7 @@ rule bowtie:
         "logs/bowtie/{sample}_MappedOn_{refbase}_{mode}.log"
     params:
         extra=""
-    threads: 32
+    threads: 16
     shell:
         "bowtie {reference} --threads {threads} -v {missmatches} "
         "{bowtie_par} -q {input} -S 2> {log}"
@@ -130,7 +130,8 @@ rule postmapping:
 rule calccoverage:
     """compute coverage using deeptools into bigWig(bw) file"""
     input:
-        "mapped/{sample}.bam"
+        bam="mapped/{sample}.bam",
+        bai="mapped/{sample}.bam.bai"
     output:
         "mapped/bws/{sample}.cpm.bw"
     params:
@@ -138,7 +139,7 @@ rule calccoverage:
     threads: 8
     shell:
         """
-        bamCoverage -b {input} -o {output}  --normalizeUsing CPM --binSize {params.binsize} -p {threads}
+        bamCoverage -b {input.bam} -o {output}  --normalizeUsing CPM --binSize {params.binsize} -p {threads}
         """
  # bowtie [options]* <ebwt> {-1 <m1> -2 <m2> | --12 <r> |
  # --interleaved <i> | <s>} [<h
