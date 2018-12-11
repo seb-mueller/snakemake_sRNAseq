@@ -8,4 +8,4 @@ dependencies:
   - bamtools
   # - ucsc-bedgraphtobigwig
   # - bedtools
-  - deeptools 
+  - deeptools>=3
