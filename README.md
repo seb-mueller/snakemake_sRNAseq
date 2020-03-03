@@ -29,12 +29,12 @@ conda env create --file environment.yaml --name srna_mapping
 # activate 
 
 ```
-source activate srna_mapping
+conda activate srna_mapping
 ```
 To `deactivate` the environment, run:
 
 ```
-source deactivate
+conda deactivate
 ```
 
 # Update:
@@ -60,8 +60,11 @@ Navigate in a Unix shell to the base directory contains the files listed above p
 Then just run snakmake in base directory:
 
 
-```
-snakemake 
+```sh
+# the most basic usage
+snakemake
+# recommended: automatic conda managment in central location
+snakemake --use-conda --conda-prefix ~/.myconda -p
 ```
 ## useful parameters:
 - `--cores` max number of threads
@@ -70,6 +73,7 @@ snakemake
 - `--use-conda`
 - `--conda-prefix ~/.myconda`
 - `--forcerun postmapping` forces rerun of a given rule (e.g. `postmapping`)
+- `--keep-going` if for example one sample fails, pipeline will still try to process other samples
  
 
 # Output:

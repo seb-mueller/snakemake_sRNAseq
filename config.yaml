@@ -8,17 +8,15 @@ FILTER:
       maximum-length: 40
       extra-params:
 MAPPING:
-      #default
+      # default
       # -k 1 (default): Report up to <int> valid alignments per read
-      mode: "unique" # -m 1
-      missmatches: 0 # -v <int>
+      # options for mode are "unique" and "multi"
+      mode: "multi" # passed on to bowtie as `bowtie -m 1` if unique, otherwise default
+      missmatches: 0 # passed on to bowtie as `bowtie -v <int>`
       reference: "data/index/genome"
 
-# AGATCGGAAGAGC
-
 # Changed the Illumina small RNA sequence used for auto-detection to 'TGGAATTCTCGG' (from formerly 'ATGGAATTCTCG'). 
-# The reason for this is that smallRNA libraries have ssRNA adapters ligated to their -OH end, a signature of dicer cleavage, so there is no A-tailing involved. Thanks to Q. Gouil for bringing this to our attention
-# f ($nextera){
+# ($nextera){
 # $adapter = 'CTGTCTCTTATA';
 # $adapter_name = 'Nextera Transposase sequence; user defined';
 # }

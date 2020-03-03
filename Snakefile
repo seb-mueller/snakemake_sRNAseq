@@ -48,7 +48,7 @@ rule fastqc_raw:
     log:
         "logs/fastqc/raw/{sample}.log"
     wrapper:
-        '0.27.1/bio/fastqc'
+        '0.49.0/bio/fastqc'
 
 # rule multiqc_fastqc_reads:
 #     """https://snakemake-wrappers.readthedocs.io/en/stable/wrappers/multiqc.html"""
@@ -59,7 +59,7 @@ rule fastqc_raw:
 #         txt='reports/fastqc_data/multiqc_general_stats.txt'
 #     params: '-m fastqc'
 #     wrapper:
-#         '0.27.1/bio/multiqc'
+#         '0.49.0/bio/multiqc'
 
 rule cutadapt:
     input:
@@ -74,8 +74,9 @@ rule cutadapt:
         " -M " + str(config['FILTER']['cutadapt']['maximum-length'])
     log:
         "logs/cutadapt/{sample}.log"
+    threads: 4 # set desired number of threads here
     wrapper:
-        "0.27.1/bio/cutadapt/se"
+        "0.49.0/bio/cutadapt/se"
 
 rule fastqc_trimmed:
     """Create fastqc report"""
@@ -88,7 +89,7 @@ rule fastqc_trimmed:
     log:
         "logs/fastqc/trimmed/{sample}.log"
     wrapper:
-        '0.27.1/bio/fastqc'
+        '0.49.0/bio/fastqc'
 
 rule bowtie:
     """maps small RNAs using bowtie and sorts them using samtools"""
@@ -101,6 +102,7 @@ rule bowtie:
     params:
         extra=""
     threads: 16
+    conda: 'environment.yaml'
     shell:
         "bowtie {reference} --threads {threads} -v {missmatches} "
         "{bowtie_par} -q {input} -S 2> {log}"
@@ -117,6 +119,7 @@ rule postmapping:
         idxstat      = "logs/bowtie/{sample}_idxstats.log",
         coveragestat = "logs/bowtie/{sample}_coveragestats.log",
         depthstat    = "logs/bowtie/{sample}_depthstats.log"
+    conda: 'environment.yaml'
     shell:
         """
         samtools index        {input}
@@ -137,6 +140,7 @@ rule calccoverage:
     params:
         binsize="10"
     threads: 8
+    conda: 'environment.yaml'
     shell:
         """
         bamCoverage -b {input.bam} -o {output}  --normalizeUsing CPM --binSize {params.binsize} -p {threads}
