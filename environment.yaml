@@ -1,6 +1,7 @@
 channels:
   - bioconda
 dependencies:
+  - fastx_toolkit
   - bowtie=1
   - cutadapt
   - fastqc
