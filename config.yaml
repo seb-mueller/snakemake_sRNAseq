@@ -1,41 +1,40 @@
 THREADS: 32
 FILTER:
   cutadapt:
-      adapter: TGGAATTCTCGG
-      # set quality-filter to 0 to deactivate quality filtering (default 20)
-      quality-filter: 0
-      minimum-adapters-overlap: 6
-      minimum-length: 15
-      maximum-length: 40
-      # extra parameters to be passed on to cutadapt, such as another adapter as shown here:
-      extra-params: "-a TCGTATGCCGTC"
+    adapter: TGGAATTCTCGG
+    # set quality-filter to 0 to deactivate quality filtering (default 20)
+    quality-filter: 0
+    minimum-adapters-overlap: 6
+    minimum-length: 15
+    maximum-length: 40
+    # extra parameters to be passed on to cutadapt, such as another adapter as shown here:
+    extra-params: "-a TCGTATGCCGTC"
 MAPPING:
-      # default
-      # -k 1 (default): Report up to <int> valid alignments per read
-      # options for mode are "unique" and "multi"
-      m: 50 # passed on to bowtie as `bowtie -m <int>`. value as 1 only finds "unique" mappers!
-      missmatches: 1 # passed on to bowtie as `bowtie -v <int>`
-      reference: "data/index/genome.fa"
-      annotation: "path/to/annotation.gtf"
-      # extra_params_bowtie: ""
-      extra_params_bowtie: "-a --best --strata"
-      # STAR parameters
+  # default
+  # -k 1 (default): Report up to <int> valid alignments per read
+  # options for mode are "unique" and "multi"
+  m: 50 # passed on to bowtie as `bowtie -m <int>`. value as 1 only finds "unique" mappers!
+  missmatches: 1 # passed on to bowtie as `bowtie -v <int>`
+  reference: "data/index/genome.fa"
+  # annotation: "path/to/annotation.gtf"
+  # extra_params_bowtie: ""
+  extra_params_bowtie: "-a --best --strata"
+  # STAR parameters
 STAR:
-      star_idx_dir: "staridx"
-      runMode: "alignReads"
-      genomeLoad: "LoadAndKeep"
-      outSAMtype: "BAM SortedByCoordinate"
-      # outFileNamePrefix: $sample"."
-      alignEndsType: "EndToEnd"
-      # outFileNamePrefix: "EndToEnd"
-      scoreDelOpen: -10000
-      scoreInsOpen: -10000
-      alignIntronMax: 1
-      outFilterMismatchNmax: 2
-      outFilterMultimapNmax: 50
-      alignSJDBoverhangMin: 1000
-      limitBAMsortRAM: 15000000000
-      extra: ""
+  star_idx_dir: "staridx"
+  runMode: "alignReads"
+  genomeLoad: "LoadAndKeep"
+  outSAMtype: "BAM SortedByCoordinate"
+  # outFileNamePrefix: "{sample}."
+  alignEndsType: "EndToEnd"
+  scoreDelOpen: -10000
+  scoreInsOpen: -10000
+  alignIntronMax: 1
+  outFilterMismatchNmax: 2
+  outFilterMultimapNmax: 50
+  alignSJDBoverhangMin: 1000
+  limitBAMsortRAM: 15000000000
+  extra: ""
 
 # Changed the Illumina small RNA sequence used for auto-detection to 'TGGAATTCTCGG' (from formerly 'ATGGAATTCTCG').
 # ($nextera){

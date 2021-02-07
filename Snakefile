@@ -57,7 +57,7 @@ rule staridx:
 
 rule starmap:
     input:
-        expand('star/{sample}/Aligned.sortedByCoord.out.bam', sample=samples.index)
+        expand('mapped_star/{sample}.Aligned.sortedByCoord.out.bam', sample=samples.index)
 
 rule fastqc_raw:
     """Create fastqc report"""
@@ -157,30 +157,36 @@ rule star_se:
     output:
         # see STAR manual for additional output files
         # "star/{sample}_{refbase}/Aligned.out.sam"
-        "star/{sample}/Aligned.sortedByCoord.out.bam",
+        "mapped_star/{sample}.Aligned.sortedByCoord.out.bam",
     log:
         "logs/star/{sample}.log"
     params:
         # path to STAR reference genome index
         # index="staridx",
         index=config['STAR']['star_idx_dir'],
-        # optional parameters
-        # extra="--outSAMtype BAM SortedByCoordinate"
-        extra=" --runMode "               + config["STAR"]["runMode"] +
-              " --genomeLoad "            + config["STAR"]["genomeLoad"] +
-              " --outSAMtype "            + config["STAR"]["outSAMtype"] +
-              " --alignEndsType "         + config["STAR"]["alignEndsType"] +
-              #" --outFileNamePrefix "     + "{sample}" + "." +
-              " --scoreDelOpen "          + str(config["STAR"]["scoreDelOpen"]) +
-              " --scoreInsOpen "          + str(config["STAR"]["scoreInsOpen"]) +
-              " --alignIntronMax "        + str(config["STAR"]["alignIntronMax"]) +
-              " --outFilterMismatchNmax " + str(config["STAR"]["outFilterMismatchNmax"]) +
-              " --outFilterMultimapNmax " + str(config["STAR"]["outFilterMultimapNmax"]) +
-              " --alignSJDBoverhangMin "  + str(config["STAR"]["alignSJDBoverhangMin"]) +
-              " --limitBAMsortRAM "       + str(config["STAR"]["limitBAMsortRAM"])
     threads: 8
-    wrapper:
-        "0.70.0/bio/star/align"
+    shell:
+      "STAR "
+      #"{extra} "
+      "--runThreadN {threads} "
+      "--genomeDir {params.index} "
+      "--readFilesIn {input.fq1} "
+      "--readFilesCommand zcat "
+      " --runMode "               + config["STAR"]["runMode"] +
+      " --genomeLoad "            + config["STAR"]["genomeLoad"] +
+      " --outSAMtype "            + config["STAR"]["outSAMtype"] +
+      " --alignEndsType "         + config["STAR"]["alignEndsType"] +
+      " --outFileNamePrefix "     + "mapped_star/{wildcards.sample}." +
+      " --scoreDelOpen "          + str(config["STAR"]["scoreDelOpen"]) +
+      " --scoreInsOpen "          + str(config["STAR"]["scoreInsOpen"]) +
+      " --alignIntronMax "        + str(config["STAR"]["alignIntronMax"]) +
+      " --outFilterMismatchNmax " + str(config["STAR"]["outFilterMismatchNmax"]) +
+      " --outFilterMultimapNmax " + str(config["STAR"]["outFilterMultimapNmax"]) +
+      " --alignSJDBoverhangMin "  + str(config["STAR"]["alignSJDBoverhangMin"]) +
+      " --limitBAMsortRAM "       + str(config["STAR"]["limitBAMsortRAM"]) +
+      "--outStd Log "
+      "{log}"  
+      #"0.70.0/bio/star/align" # didn't work since outFileNamePrefix couldn't be overwritten
 
 rule bowtie:
     """maps small RNAs using bowtie and sorts them using samtools"""

@@ -86,3 +86,6 @@ snakemake --use-conda --conda-prefix ~/.myconda -p
 ```
 # create star index (goes in staridx folder)
 snakemake -p --skip-script-cleanup staridx --cores 3
+# then map using star
+snakemake -p --skip-script-cleanup starmap --cores 3
+# TODO: create bw files form STAR mapping

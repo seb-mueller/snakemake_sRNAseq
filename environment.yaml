@@ -9,6 +9,7 @@ dependencies:
   - multiqc
   - samtools
   - bamtools
+  - star>=2.7.5c
   # - ucsc-bedgraphtobigwig
   # - bedtools
   - deeptools>=3
