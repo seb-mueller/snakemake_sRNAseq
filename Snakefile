@@ -49,6 +49,16 @@ rule fq2fa:
     input:
         expand('trimmed/fasta/{sample}.fa', sample=samples.index),
 
+rule staridx:
+    input:
+      #"staridx"
+      config['STAR']['star_idx_dir']
+      #expand('{reference}_star', reference=reference)
+
+rule starmap:
+    input:
+        expand('star/{sample}/Aligned.sortedByCoord.out.bam', sample=samples.index)
+
 rule fastqc_raw:
     """Create fastqc report"""
     input:
@@ -60,7 +70,7 @@ rule fastqc_raw:
     log:
         "logs/fastqc/raw/{sample}.log"
     wrapper:
-        '0.50.4/bio/fastqc'
+        '0.70.0/bio/fastqc'
 
 # rule multiqc_fastqc_reads:
 #     """https://snakemake-wrappers.readthedocs.io/en/stable/wrappers/multiqc.html"""
@@ -73,6 +83,11 @@ rule fastqc_raw:
 #     wrapper:
 #         '0.49.0/bio/multiqc'
 
+if config['FILTER']['cutadapt']['quality-filter'] != 0:
+  qual = " -q " + str(config['FILTER']['cutadapt']['quality-filter'])
+else:
+  qual = ""
+
 rule cutadapt:
     input:
         'data/{sample}.fastq.gz'
@@ -80,16 +95,17 @@ rule cutadapt:
         fastq="trimmed/{sample}.fastq.gz",
         qc="trimmed/{sample}.qc.txt"
     params:
-        " -a " +     config['FILTER']['cutadapt']['adapter'] +
-        " -q " + str(config['FILTER']['cutadapt']['quality-filter']) +
-        " -m " + str(config['FILTER']['cutadapt']['minimum-length']) +
-        " -M " + str(config['FILTER']['cutadapt']['maximum-length']) +
-        " "    + str(config['FILTER']['cutadapt']['extra-params'])
+      adapters=" -a " +     config['FILTER']['cutadapt']['adapter'],
+        extra=
+          " -m " + str(config['FILTER']['cutadapt']['minimum-length']) +
+          " -M " + str(config['FILTER']['cutadapt']['maximum-length']) +
+          " "    + str(config['FILTER']['cutadapt']['extra-params']) +
+          qual
     log:
         "logs/cutadapt/{sample}.log"
     threads: 1 # set desired number of threads here
     wrapper:
-        "0.50.4/bio/cutadapt/se"
+        "0.70.0/bio/cutadapt/se"
 
 rule fastq_to_fasta:
     """Convert fq 2 fa"""
@@ -113,7 +129,58 @@ rule fastqc_trimmed:
     log:
         "logs/fastqc/trimmed/{sample}.log"
     wrapper:
-        '0.50.4/bio/fastqc'
+        '0.70.0/bio/fastqc'
+
+rule star_index:
+    input:
+        fasta = config['MAPPING']['reference']
+    output:
+        #directory("{reference}_star")
+        directory(config['STAR']['star_idx_dir'])
+    message:
+        "Creating STAR index in for " + 
+        config['MAPPING']['reference'] + " in " + 
+        config['STAR']['star_idx_dir']
+    threads:
+        1
+    params:
+        extra = ""
+    log:
+        "logs/star_index.log"
+        # "logs/star_index_{reference}.log"
+    wrapper:
+        "0.70.0/bio/star/index"
+
+rule star_se:
+    input:
+        fq1 = "trimmed/{sample}.fastq.gz",
+    output:
+        # see STAR manual for additional output files
+        # "star/{sample}_{refbase}/Aligned.out.sam"
+        "star/{sample}/Aligned.sortedByCoord.out.bam",
+    log:
+        "logs/star/{sample}.log"
+    params:
+        # path to STAR reference genome index
+        # index="staridx",
+        index=config['STAR']['star_idx_dir'],
+        # optional parameters
+        # extra="--outSAMtype BAM SortedByCoordinate"
+        extra=" --runMode "               + config["STAR"]["runMode"] +
+              " --genomeLoad "            + config["STAR"]["genomeLoad"] +
+              " --outSAMtype "            + config["STAR"]["outSAMtype"] +
+              " --alignEndsType "         + config["STAR"]["alignEndsType"] +
+              #" --outFileNamePrefix "     + "{sample}" + "." +
+              " --scoreDelOpen "          + str(config["STAR"]["scoreDelOpen"]) +
+              " --scoreInsOpen "          + str(config["STAR"]["scoreInsOpen"]) +
+              " --alignIntronMax "        + str(config["STAR"]["alignIntronMax"]) +
+              " --outFilterMismatchNmax " + str(config["STAR"]["outFilterMismatchNmax"]) +
+              " --outFilterMultimapNmax " + str(config["STAR"]["outFilterMultimapNmax"]) +
+              " --alignSJDBoverhangMin "  + str(config["STAR"]["alignSJDBoverhangMin"]) +
+              " --limitBAMsortRAM "       + str(config["STAR"]["limitBAMsortRAM"])
+    threads: 8
+    wrapper:
+        "0.70.0/bio/star/align"
 
 rule bowtie:
     """maps small RNAs using bowtie and sorts them using samtools"""

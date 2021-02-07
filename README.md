@@ -80,3 +80,9 @@ snakemake --use-conda --conda-prefix ~/.myconda -p
 
 `trimmed`, `log` and `mapped` directory with trimming and mapping results.
 
+
+# Update: added STAR support
+
+```
+# create star index (goes in staridx folder)
+snakemake -p --skip-script-cleanup staridx --cores 3

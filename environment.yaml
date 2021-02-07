@@ -1,5 +1,6 @@
 channels:
   - bioconda
+  - conda-forge
 dependencies:
   - fastx_toolkit
   - bowtie=1
@@ -11,3 +12,4 @@ dependencies:
   # - ucsc-bedgraphtobigwig
   # - bedtools
   - deeptools>=3
+  - snakemake>=5.20
