@@ -4,11 +4,11 @@ FILTER:
     adapter: TGGAATTCTCGG
     # set quality-filter to 0 to deactivate quality filtering (default 20)
     quality-filter: 0
-    minimum-adapters-overlap: 6
-    minimum-length: 15
-    maximum-length: 40
+    minimum-adapters-overlap: 5
+    minimum-length: 19
+    maximum-length: 25
     # extra parameters to be passed on to cutadapt, such as another adapter as shown here:
-    extra-params: "-a TCGTATGCCGTC"
+    extra-params: "-a TCGTATGCCGTC -a AGATCGGAAGAGC"
 MAPPING:
   # default
   # -k 1 (default): Report up to <int> valid alignments per read
@@ -30,7 +30,7 @@ STAR:
   scoreDelOpen: -10000
   scoreInsOpen: -10000
   alignIntronMax: 1
-  outFilterMismatchNmax: 2
+  outFilterMismatchNmax: 0
   outFilterMultimapNmax: 50
   alignSJDBoverhangMin: 1000
   limitBAMsortRAM: 15000000000

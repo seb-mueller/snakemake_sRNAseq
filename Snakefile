@@ -197,6 +197,12 @@ rule bowtie:
     log:
         "logs/bowtie/{sample}_MappedOn_{refbase}_{mode}.log"
     params:
+        # this is adding read-group ID to bam header, e.g.:
+        # @RG     ID:SRR1234_leaf
+        # SRR10419098.5387676     16      chr01  ... RG:Z:SRR10419098_leaf NH:i:7  HI:i:1  n
+        # can also be acchieve with picard tools
+        # picard AddOrReplaceReadGroups I=$file O=for_shortstack/rg_${file} RGID=${file%%.bam} \
+
         "--sam-RG ID:{sample}"
     threads: 16
     conda: 'environment.yaml'
